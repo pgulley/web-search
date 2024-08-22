@@ -255,7 +255,7 @@ prod|staging)
     add_vars DATABASE_URI=$(dokku postgres:info $PG_SVC --dsn)
 
     add_vars ALLOWED_HOSTS=${APP_FQDN},localhost
-    add_vars NEWS_SEARCH_API_URL=http://ramos.angwin:8000/v1/
+    add_vars NEWS_SEARCH_API_URL=http://posey.angwin:8100/v1/
 
     # maybe check for env.$UNAME and set as PRIVATE_CONF_FILE??
     # and only use these if it doesn't exist?
