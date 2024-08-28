@@ -1,0 +1,3 @@
+# put config overrides in this file
+NEWS_SEARCH_API_URL=http://posey.angwin:8100/v1/
+SYSTEM_ALERT="🚧 paige's dev instance 🚧"
