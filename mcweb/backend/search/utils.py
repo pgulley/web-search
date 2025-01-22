@@ -246,7 +246,10 @@ def _for_wayback_machine(collections: List, sources: List) -> Dict:
     # domain_url_filters = ["(domain:{} AND url:*{}*)".format(s.name, s.url_search_string) for s in sources_with_url_search_strs]
     return dict(domains=domains)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b1a39ff0dae0bd82a67e81c65a955dfd8a330f93
 # additional query properties to pass to MediaCloud Providers
 # sort_field could possibly be used nefariously (be used in a DoS
 # attack, or to leak full text in pagination key), so omitting it
@@ -267,7 +270,10 @@ def _copy_media_cloud_extra_props(output: Dict, input: Mapping) -> None:
         if prop_name in input:
             output[prop_name] = input[prop_name]
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b1a39ff0dae0bd82a67e81c65a955dfd8a330f93
 def _for_media_cloud_OLD(collections: List, sources: List, all_params: Dict) -> Dict:
     # pull these in at runtime, rather than outside class, so we can make sure the models are loaded
     Source = apps.get_model('sources', 'Source')
