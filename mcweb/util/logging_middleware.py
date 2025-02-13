@@ -77,8 +77,9 @@ class RequestLoggingMiddleware:
                 request_logger.info(json.dumps(log_msg))
             except TypeError:
                 pass
-
-        util.stats.path_stats(request.path, duration, response.status_code)
+    
+        #commenting out on a hunch
+        #util.stats.path_stats(request.path, duration, response.status_code)
 
         return response
 
