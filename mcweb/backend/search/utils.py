@@ -20,6 +20,9 @@ from settings import ALL_URLS_CSV_EMAIL_MAX, ALL_URLS_CSV_EMAIL_MIN, NEWS_SEARCH
 # mcweb/backend/users
 from ..users.models import QuotaHistory
 
+# mcweb/backend/utils/provider
+from ..util.provider import get_provider
+
 logger = logging.getLogger(__name__)
 
 class ParsedQuery(NamedTuple):
@@ -56,16 +59,10 @@ def fill_in_dates(start_date, end_date, existing_counts):
 def pq_provider(pq: ParsedQuery, platform: Optional[str] = None) -> ContentProvider:
     """
     take parsed query, return mc_providers ContentProvider.
-    (one place to pass new things to mc_providers)
     """
     name = platform or pq.provider_name
-    # BEGIN TEMPORARY CROCKERY!
-    # if mediacloud, and emergency ripcord pulled, revert to (new) NSA-based provider
-    if name == 'onlinenews-mediacloud' and constance.config.OLD_MC_PROVIDER:
-        name = 'onlinenews-mediacloud-old'
-    # END TEMPORARY CROCKERY
-    return provider_by_name(name, api_key=pq.api_key, base_url=pq.base_url, caching=pq.caching,
-                            software_id="web-search", session_id=pq.session_id)
+    return get_provider(name, api_key=pq.api_key, base_url=pq.base_url, 
+                        caching=pq.caching, session_id=pq.session_id)
 
 def parse_date_str(date_str: str) -> dt.datetime:
     """
@@ -87,9 +84,9 @@ _BASE_URL = {
     'onlinenews-mediacloud-old': NEWS_SEARCH_API_URL,
 }
 
-def _get_session_id(request) -> str | None:
+def request_session_id(request) -> str | None:
     if request.user.is_authenticated:
-        user = str(request.user)
+        user = request.user.email
         # XXX include a session hash from request.session?
         return user
     else:
@@ -99,9 +96,10 @@ def parse_query_params(request) -> (ParsedQuery, dict):
     """
     return ParsedQuery plus dict for other params
     """
+    session_id = request_session_id(request)
     if request.method == 'POST':
         payload = json.loads(request.body)
-        return (parsed_query_from_dict(payload.get("queryObject"), request), payload)
+        return (parsed_query_from_dict(payload.get("queryObject"), session_id), payload)
 
     provider_name = request.GET.get("p", 'onlinenews-mediacloud')
     query_str = request.GET.get("q", "*")
@@ -136,14 +134,14 @@ def parse_query_params(request) -> (ParsedQuery, dict):
                      query_str=query_str, provider_props=provider_props,
                      provider_name=provider_name, api_key=api_key,
                      base_url=base_url, caching=caching,
-                     session_id=_get_session_id(request))
+                     session_id=session_id)
     return (pq, request.GET)
 
 def parse_query(request) -> ParsedQuery:
     pq, payload = parse_query_params(request)
     return pq
 
-def parsed_query_from_dict(payload, request) -> ParsedQuery:
+def parsed_query_from_dict(payload: dict, session_id: str) -> ParsedQuery:
     """
     Takes a queryObject dict, returns ParsedQuery
     """
@@ -161,7 +159,7 @@ def parsed_query_from_dict(payload, request) -> ParsedQuery:
                        query_str=query_str, provider_props=provider_props,
                        provider_name=provider_name, api_key=api_key,
                        base_url=base_url, caching=caching,
-                       session_id=_get_session_id(request))
+                       session_id=session_id)
 
 def parsed_query_state(request) -> list[ParsedQuery]:
     """
@@ -175,7 +173,8 @@ def parsed_query_state(request) -> list[ParsedQuery]:
     else:
         queries = json.loads(request.GET.get("qS"))
 
-    pqs = [parsed_query_from_dict(q, request) for q in queries]
+    session_id = request_session_id(request)
+    pqs = [parsed_query_from_dict(q, session_id) for q in queries]
     return pqs
 
 def _get_api_key(provider: str) -> str | None:

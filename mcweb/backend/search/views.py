@@ -22,7 +22,7 @@ from rest_framework.permissions import IsAuthenticated
 from urllib3.util.retry import Retry
 
 # mcweb
-from settings import ALL_URLS_CSV_EMAIL_MAX, ALL_URLS_CSV_EMAIL_MIN
+from settings import ALL_URLS_CSV_EMAIL_MAX, ALL_URLS_CSV_EMAIL_MIN, AVAILABLE_PROVIDERS
 
 # mcweb/util
 from util.cache import cache_by_kwargs, mc_providers_cacher
@@ -38,12 +38,14 @@ from .utils import (
     parse_query_params,
     parsed_query_from_dict,
     parsed_query_state,
-    pq_provider
+    pq_provider,
+    request_session_id
 )
 from .tasks import download_all_large_content_csv, download_all_queries_csv_task
 
 # mcweb/backend/users
 from ..users.models import QuotaHistory
+from ..users.views import _user_from_token
 from backend.users.exceptions import OverQuotaException
 
 # mcweb/backend/util
@@ -421,8 +423,9 @@ def send_email_large_download_csv(request):
     # NOTE: download_all_content_csv doesn't check count!
     # applying range check to sum of all queries!
     total = 0
+    session_id = request_session_id(request)
     for query in queryState:
-        pq = parsed_query_from_dict(query, request)
+        pq = parsed_query_from_dict(query, session_id)
         provider = pq_provider(pq)
         try:
             total += provider.count(_qs(pq), pq.start_date, pq.end_date, **pq.provider_props)
@@ -451,9 +454,26 @@ def download_all_queries_csv(request):
     # was: return HttpResponse(content_type="application/json", status=200)
     return json_response("")
 
+@handle_provider_errors
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication]) #API only method for now
+@permission_classes([IsAuthenticated])
+def providers(request):
+    token = request.GET.get('Authorization', None)
+    if token:
+        user = _user_from_token(token)
+        providers = {
+            AVAILABLE_PROVIDERS[0]: user.profile.quota_mediacloud,
+            AVAILABLE_PROVIDERS[1]: user.profile.quota_wayback_machine,
+        }
+        return json_response({"providers": providers})
+    else:
+        return error_response("No token provided", response_type=HttpResponseBadRequest)
+
 def add_ratios(words_data):
     for word in words_data:
-        word["ratio"] = word['count'] / 1000
+        if "ratio" not in word:
+            word["ratio"] = word['count'] / 1000
     return words_data
 
 
