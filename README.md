@@ -39,4 +39,6 @@ Other useful commands:
 
 Releasing
 ---------
-`npm run build` 
+`npm run build`
+
+NB: releasing is so different now... 
