@@ -42,7 +42,7 @@ class CustomUserAdmin(BaseUserAdmin):
         
     current_collection_permissions.short_description = "Current Collection IDs with Edit Permissions"
 
-    readonly_fields = BaseUserAdmin.readonly_fields + ('current_collection_permissions')
+    readonly_fields = BaseUserAdmin.readonly_fields + ('current_collection_permissions',)
 
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Collection Permissions', {
