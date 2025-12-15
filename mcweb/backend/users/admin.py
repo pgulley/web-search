@@ -30,14 +30,6 @@ class ProfileInline(admin.StackedInline):
 class CustomUserAdmin(BaseUserAdmin):
     form = UserAdminForm
     
-    fieldsets = BaseUserAdmin.fieldsets + (
-        ('Collection Permissions', {
-            'fields': ('collection_id', "current_collection_permissions"),
-        }),
-    )
-
-    readonly_fields = ('current_collection_permissions')
-
     def current_collection_permissions(self, obj):
         """Display the collection IDs this user can edit"""
         if obj.pk:
@@ -50,7 +42,13 @@ class CustomUserAdmin(BaseUserAdmin):
         
     current_collection_permissions.short_description = "Current Collection IDs with Edit Permissions"
 
+    readonly_fields = ('current_collection_permissions')
 
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ('Collection Permissions', {
+            'fields': ('collection_id', "current_collection_permissions"),
+        }),
+    )
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
