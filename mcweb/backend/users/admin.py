@@ -55,8 +55,10 @@ class CustomUserAdmin(BaseUserAdmin):
         collection_id  = form.cleaned_data.get('collection_id')
         if collection_id:
             collection = Collection.objects.get(pk=collection_id)
-            assign_perm('edit_collection', obj, collection)
-            logger.info(f"Admin {request.user.username} granted edit permission for Collection {collection_id} to user {obj.username}")
+            logger.info(f"Got collection: {collection} for {collection_id}, and user {obj}")
+            if collection:
+                assign_perm('edit_collection', obj, collection)
+                logger.info(f"Admin {request.user.username} granted edit permission for Collection {collection_id} to user {obj.username}")
 
 
 # Re-register UserAdmin
