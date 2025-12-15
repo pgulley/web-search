@@ -54,7 +54,7 @@ class CustomUserAdmin(BaseUserAdmin):
         super().save_model(request, obj, form, change)
         collection_id  = form.cleaned_data.get('collection_id')
         if collection_id:
-            collection = Collection.objects.get(pk='collection_id')
+            collection = Collection.objects.get(pk=collection_id)
             assign_perm('edit_collection', obj, collection)
             logger.info(f"Admin {request.user.username} granted edit permission for Collection {collection_id} to user {obj.username}")
 
