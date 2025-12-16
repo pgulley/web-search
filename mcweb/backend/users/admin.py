@@ -75,7 +75,7 @@ class CustomUserAdmin(BaseUserAdmin):
 
                 all_perms_filtered = Permission.objects.filter(content_type=content_type)
                 logger.error(f"Permission 'edit_collection' not found for ContentType {content_type}")
-                logger.error(f"Available permissions for this ContentType: {list(all_perms_filtered.values_list('codename', flat=True))}")
+                logger.error(f"Available permissions for this ContentType only: {list(all_perms_filtered.values_list('codename', flat=True))}")
                 all_perms = Permission.objects.all()
                 logger.error(f"All permissions: {list(all_perms.values_list('codename', flat=True))}")
 
