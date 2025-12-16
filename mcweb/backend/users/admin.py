@@ -64,7 +64,7 @@ class CustomUserAdmin(BaseUserAdmin):
             logger.info(f"ContentType for Collection: {content_type} (app_label={content_type.app_label}, model={content_type.model})")
 
             try:
-                permission = Permission.objets.get(
+                permission = Permission.objects.get(
                     codename="edit_collection",
                     content_type=content_type
                     )
