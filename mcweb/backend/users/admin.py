@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.contrib.auth import get_user_model
+
+from django.contrib.contenttypes.models import ContentType
+
 from guardian.shortcuts import assign_perm, get_objects_for_user
 from .forms import UserAdminForm
 
@@ -56,9 +59,28 @@ class CustomUserAdmin(BaseUserAdmin):
         if collection_id:
             collection = Collection.objects.get(pk=collection_id)
             logger.info(f"Got collection: {collection} for {collection_id}, and user {obj}")
-            if collection:
-                assign_perm('edit_collection', obj, collection)
+
+            content_type = ContentType.objects.get_for_model(Collection)
+            logger.info(f"ContentType for Collection: {content_type} (app_label={content_type.app_label}, model={content_type.model})")
+
+            try:
+                permission = Permission.objets.get(
+                    codename="edit_collection",
+                    content_type=content_type
+                    )
+                logger.info(f"Found permission: {permission} (id={permission.id})")
+                assign_perm("edit_collection", obj, collection)
                 logger.info(f"Admin {request.user.username} granted edit permission for Collection {collection_id} to user {obj.username}")
+            except Permission.DoesNotExist:
+
+                all_perms_filtered = Permission.objects.filter(content_type=content_type)
+                logger.error(f"Permission 'edit_collection' not found for ContentType {content_type}")
+                logger.error(f"Available permissions for this ContentType: {list(all_perms_filtered.values_list('codename', flat=True))}")
+                all_perms = Permission.objects.all()
+                logger.error(f"All permissions: {list(all_perms.values_list('codename', flat=True))}")
+
+                raise
+
 
 
 # Re-register UserAdmin
