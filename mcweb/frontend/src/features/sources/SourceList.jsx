@@ -18,10 +18,11 @@ export default function SourceList(props) {
   dayjs.extend(utc);
   const { collectionId, edit, staticCollection } = props;
   const [page, setPage] = useState(0);
+  const [name, setName] = useState('');
   const {
     data: sources,
     isLoading,
-  } = useListSourcesQuery({ collection_id: collectionId, page });
+  } = useListSourcesQuery({ collection_id: collectionId, page, name });
 
   const [deleteSourceCollectionAssociation] = useDeleteSourceCollectionAssociationMutation();
 
@@ -37,6 +38,16 @@ export default function SourceList(props) {
         {asNumber(sources.count)}
         )
       </h2>
+      <input
+        type="search"
+        placeholder="Search sources by name or domain…"
+        value={name}
+        onChange={(e) => {
+          setPage(0);
+          setName(e.target.value);
+        }}
+        style={{ marginBottom: '0.5rem' }}
+      />
       { (Math.ceil(sources.count / PAGE_SIZE) > 1) && (
         <Pagination
           count={Math.ceil(sources.count / PAGE_SIZE)}
